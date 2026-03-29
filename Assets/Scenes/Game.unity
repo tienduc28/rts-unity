@@ -4068,8 +4068,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.36022317, y: -0.608473, z: 0.36022332, w: 0.6084727}
-  m_LocalPosition: {x: 45.78, y: 15.7, z: 44.1}
+  m_LocalRotation: {x: 0.5760485, y: 0.000000023070383, z: -0.000000016258145, w: 0.81741554}
+  m_LocalPosition: {x: 38.1, y: 15.7, z: 39.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4165,10 +4165,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInput
   cameraTarget: {fileID: 192143828}
-  keyboardPanSpeed: 5
-  minZoomDistance: 7.5
   cinemachineCamera: {fileID: 1463978237}
-  cinemachineFollow: {fileID: 0}
+  cameraConfig:
+    <keyboardPanSpeed>k__BackingField: 5
+    <minZoomDistance>k__BackingField: 7.5
+    <zoomSpeed>k__BackingField: 10
+    <rotationAmount>k__BackingField: 90
+    <rotationSpeed>k__BackingField: 10
 --- !u!1001 &332197402
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18403,7 +18406,7 @@ MonoBehaviour:
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
   TargetOffset: {x: 0, y: 0, z: 0}
-  Damping: {x: 1, y: 1}
+  Damping: {x: 0, y: 0}
   Lookahead:
     Enabled: 0
     Time: 0
@@ -18427,7 +18430,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 7.68, y: 14, z: 0}
+  FollowOffset: {x: 0, y: 14, z: -5}
 --- !u!114 &1463978237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18479,13 +18482,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1463978234}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.36022326, y: -0.60847294, z: 0.36022326, w: 0.6084729}
-  m_LocalPosition: {x: 45.78, y: 15.7, z: 44.1}
+  m_LocalRotation: {x: 0.5760485, y: 0.000000023070378, z: -0.00000001625814, w: 0.8174156}
+  m_LocalPosition: {x: 38.1, y: 15.7, z: 39.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 61, y: -90, z: 0}
+  m_LocalEulerAnglesHint: {x: 61.252, y: 90, z: 0}
 --- !u!1001 &1466503443
 PrefabInstance:
   m_ObjectHideFlags: 0
