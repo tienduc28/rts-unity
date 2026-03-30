@@ -7,7 +7,7 @@ namespace RTS.Player
 {
     public class PlayerInput : MonoBehaviour
     {
-        [SerializeField] private Transform cameraTarget;
+        [SerializeField] private Rigidbody cameraTarget;
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private CameraConfig cameraConfig;
 
@@ -29,18 +29,13 @@ namespace RTS.Player
 
             // Store original values when the game starts
             startFollowOffset = cinemachineFollow.FollowOffset;
-
-            // Initialize our rotation target to whatever the camera starts at
-            targetRotationEuler = cameraTarget.eulerAngles;
         }
 
         private void Update()
         {
             HandlePanning();
             HandleZooming();
-            HandleRotation();
-
-            GetMouseMoveAmount();
+            HandleRotation(); 
         }
 
         private void HandlePanning()
@@ -55,19 +50,18 @@ namespace RTS.Player
             if (keyboardMove != Vector2.zero)
             {
                 keyboardMove.Normalize();
-                Debug.Log("Keyboard Move: " + keyboardMove);
-                finalMove += new Vector3(keyboardMove.x, 0, keyboardMove.y) * cameraConfig.keyboardPanSpeed * Time.deltaTime;
+                finalMove += new Vector3(keyboardMove.x, 0, keyboardMove.y) * cameraConfig.keyboardPanSpeed;
             }
 
             if (mouseMove != Vector2.zero)
             {
                 mouseMove.Normalize();
-                Debug.Log("Mouse Move: " + mouseMove);
-                finalMove += new Vector3(mouseMove.x, 0, mouseMove.y) * cameraConfig.mousePanSpeed * Time.deltaTime;
+                finalMove += new Vector3(mouseMove.x, 0, mouseMove.y) * cameraConfig.mousePanSpeed;
             }
 
             // Apply movement
-            cameraTarget.position += finalMove;
+            cameraTarget.linearVelocity = finalMove;
+            //cameraTarget.position += finalMove;
         }
 
         private Vector2 GetKeyboardMoveAmount()
@@ -95,8 +89,8 @@ namespace RTS.Player
         private Vector2 GetMouseMoveAmount()
         {
             Vector2 moveAmount = Vector2.zero;
-            //Debug.Log("Mouse Position: " + Mouse.current.position.ReadValue());
             Vector2 mousePos = Mouse.current.position.ReadValue();
+
             // Safety check: ensure the mouse is actually inside the game window.
             // (Prevents accidental scrolling when switching to a second monitor)
             if (mousePos.x < 0 || mousePos.x > Screen.width || mousePos.y < 0 || mousePos.y > Screen.height)
@@ -196,7 +190,7 @@ namespace RTS.Player
                 Time.deltaTime * cameraConfig.rotationSpeed
             );
 
-            // Optional: Snap exactly to target when very close
+            // Snap exactly to target when very close
             if (Quaternion.Angle(cameraTarget.rotation, targetRot) < 0.1f)
             {
                 cameraTarget.rotation = targetRot;
