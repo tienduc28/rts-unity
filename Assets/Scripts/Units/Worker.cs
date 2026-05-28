@@ -32,6 +32,14 @@ namespace RTS.Units
             }
         }
 
+        public void ApplyDecalProjectile(Vector3 position)
+        {
+            if (decalProjector != null)
+            {
+                decalProjector.transform.position = position;
+            }
+        }
+
         public void Deselect()
         {
             if (decalProjector != null)

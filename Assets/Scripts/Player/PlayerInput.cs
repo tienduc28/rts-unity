@@ -49,18 +49,39 @@ namespace RTS.Player
 
             if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
+                SelectUnit(cameraRay);
+            }
+        }
+
+        private void SelectUnit(Ray cameraRay)
+        {
+            if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Default")))
+            {
+                if (hit.collider.TryGetComponent(out ISelectable selectable))
+                {
+                    if (_selectedUnit != null && _selectedUnit != selectable)
+                    {
+                        _selectedUnit.Deselect();
+                    }
+
+                    // select the unit
+                    selectable.Select();
+                    _selectedUnit = selectable;
+                }
+                else
+                {
+                    if (_selectedUnit != null)
+                    {
+                        _selectedUnit.ApplyDecalProjectile(hit.point);
+                    }
+                }
+            }
+            else
+            {
                 if (_selectedUnit != null)
                 {
                     _selectedUnit.Deselect();
                     _selectedUnit = null;
-                }
-                
-                if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Default"))
-                    && hit.collider.TryGetComponent(out ISelectable selectable))
-                {
-                    // select the worker
-                    selectable.Select();
-                    _selectedUnit = selectable;
                 }
             }
         }
