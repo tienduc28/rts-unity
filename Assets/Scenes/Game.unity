@@ -4237,6 +4237,12 @@ MonoBehaviour:
     <ZoomSpeed>k__BackingField: 10
     <RotationAmount>k__BackingField: 90
     <RotationSpeed>k__BackingField: 10
+  selectableUnitLayers:
+    serializedVersion: 2
+    m_Bits: 192
+  floorLayers:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!1001 &332197402
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17347,7 +17353,7 @@ GameObject:
   - component: {fileID: 1387778862}
   - component: {fileID: 1387778861}
   - component: {fileID: 1387778860}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Water
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25152,7 +25158,7 @@ GameObject:
   - component: {fileID: 1933012997}
   - component: {fileID: 1933012996}
   - component: {fileID: 1933012995}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25214,7 +25220,7 @@ Terrain:
   m_ScaleInLightmap: 0.0256
   m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
   m_GroupingID: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_AllowAutoConnect: 1
   m_EnableHeightmapRayTracing: 1
   m_EnableTreesAndDetailsRayTracing: 0

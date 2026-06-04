@@ -11,6 +11,8 @@ namespace RTS.Player
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private new Camera camera;
         [SerializeField] private CameraConfig cameraConfig;
+        [SerializeField] private LayerMask selectableUnitLayers;
+        [SerializeField] private LayerMask floorLayers;
 
         private CinemachineFollow _cinemachineFollow;
         private float _zoomStartTime;
@@ -36,6 +38,25 @@ namespace RTS.Player
             HandleZooming();
             HandleRotation();
             HandleLeftClick();
+            HandleRightClick();
+        }
+        
+        private void HandleRightClick()
+        {
+            if (camera == null || _selectedUnit is not IMoveable moveable)
+            {
+                return;
+            }
+            
+            Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            
+            if (Mouse.current.rightButton.wasReleasedThisFrame)
+            {
+                if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
+                { 
+                    moveable.MoveTo(hit.point);
+                }
+            }
         }
         
         private void HandleLeftClick()
@@ -49,39 +70,18 @@ namespace RTS.Player
 
             if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
-                SelectUnit(cameraRay);
-            }
-        }
-
-        private void SelectUnit(Ray cameraRay)
-        {
-            if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Default")))
-            {
-                if (hit.collider.TryGetComponent(out ISelectable selectable))
-                {
-                    if (_selectedUnit != null && _selectedUnit != selectable)
-                    {
-                        _selectedUnit.Deselect();
-                    }
-
-                    // select the unit
-                    selectable.Select();
-                    _selectedUnit = selectable;
-                }
-                else
-                {
-                    if (_selectedUnit != null)
-                    {
-                        _selectedUnit.ApplyDecalProjectile(hit.point);
-                    }
-                }
-            }
-            else
-            {
                 if (_selectedUnit != null)
                 {
                     _selectedUnit.Deselect();
                     _selectedUnit = null;
+                }
+                
+                if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitLayers)
+                    && hit.collider.TryGetComponent(out ISelectable selectable))
+                {
+                    // select the worker
+                    selectable.Select();
+                    _selectedUnit = selectable;
                 }
             }
         }
