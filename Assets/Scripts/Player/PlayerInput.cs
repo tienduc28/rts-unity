@@ -13,7 +13,13 @@ namespace RTS.Player
         [SerializeField] private CameraConfig cameraConfig;
         [SerializeField] private LayerMask selectableUnitLayers;
         [SerializeField] private LayerMask floorLayers;
+        [SerializeField] private RectTransform selectionBox;
+        [SerializeField] private InputActionReference leftClickAction;
+        [SerializeField] private InputActionReference rightClickAction;
+        
 
+        private Vector2 _startingMousePosition;
+        
         private CinemachineFollow _cinemachineFollow;
         private float _zoomStartTime;
         private float _rotationStartTime;
@@ -39,8 +45,49 @@ namespace RTS.Player
             HandleRotation();
             HandleLeftClick();
             HandleRightClick();
+            HandleDragSelect();
         }
-        
+
+        private void HandleDragSelect()
+        {
+            if (selectionBox == null)
+            {
+                return;
+            }
+            if (leftClickAction.action.WasPressedThisFrame())
+            {
+                // Enable UI
+                selectionBox.gameObject.SetActive(true);
+                // Store start position
+                _startingMousePosition = Mouse.current.position.ReadValue();
+                Debug.Log("Drag select started" + _startingMousePosition);
+            }
+            else if (leftClickAction.action.IsPressed() && !leftClickAction.action.WasReleasedThisFrame())
+            {
+                ResizeSelectionBox();
+            }
+            else if (leftClickAction.action.WasReleasedThisFrame())
+            {
+                // select unit
+                // deselect non-include unit
+                
+                // disable the ui
+                selectionBox.gameObject.SetActive(false);
+            }
+        }
+
+        private void ResizeSelectionBox()
+        {
+            // Resize the box
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+            float width = mousePosition.x - _startingMousePosition.x;
+            float height = mousePosition.y - _startingMousePosition.y;
+            
+            Debug.Log($"Resizing selection box to width: {width}, height: {height}");
+                
+            selectionBox.anchoredPosition = _startingMousePosition + new Vector2(width / 2, height / 2);
+            selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
+        }
         private void HandleRightClick()
         {
             if (camera == null || _selectedUnit is not IMoveable moveable)
@@ -48,10 +95,9 @@ namespace RTS.Player
                 return;
             }
             
-            Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            
             if (Mouse.current.rightButton.wasReleasedThisFrame)
             {
+                Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
                 { 
                     moveable.MoveTo(hit.point);
@@ -66,7 +112,7 @@ namespace RTS.Player
                 return;
             }
             
-            Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            
 
             if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
@@ -75,6 +121,7 @@ namespace RTS.Player
                     _selectedUnit.Deselect();
                     _selectedUnit = null;
                 }
+                Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitLayers)
                     && hit.collider.TryGetComponent(out ISelectable selectable))
