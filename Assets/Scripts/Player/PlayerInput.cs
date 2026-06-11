@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using RTS.EventBus;
 using RTS.Units;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using RTS.Events;
 
 namespace RTS.Player
 {
@@ -25,6 +28,7 @@ namespace RTS.Player
         private float _rotationStartTime;
         private Vector3 _startingFollowOffset;
         private float _maxRotationAmount;
+        //private List<ISelectable> _selectedUnit = new(12);
         private ISelectable _selectedUnit;
 
         private void Awake()
@@ -36,6 +40,24 @@ namespace RTS.Player
 
             _startingFollowOffset = _cinemachineFollow.FollowOffset;
             _maxRotationAmount = Mathf.Abs(_cinemachineFollow.FollowOffset.z);
+            
+            Bus<UnitSelectedEvent>.OnEvent += HandleUnitSelected;
+            Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
+        }
+        
+        private void OnDestroy()
+        {
+            Bus<UnitSelectedEvent>.OnEvent -= HandleUnitSelected;
+        }
+        
+        private void HandleUnitSelected(UnitSelectedEvent args)
+        {
+            _selectedUnit = args.Unit;
+        }
+        
+        private void HandleUnitDeselected(UnitDeselectedEvent args)
+        {
+            _selectedUnit = null;
         }
 
         private void Update()
