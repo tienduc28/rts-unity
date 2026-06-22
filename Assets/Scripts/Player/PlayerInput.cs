@@ -17,6 +17,8 @@ namespace RTS.Player
         [SerializeField] private LayerMask selectableUnitLayers;
         [SerializeField] private LayerMask floorLayers;
         [SerializeField] private RectTransform selectionBox;
+
+        [Header("Input Actions")]
         [SerializeField] private InputActionReference leftClickAction;
         [SerializeField] private InputActionReference rightClickAction;
         
@@ -28,8 +30,10 @@ namespace RTS.Player
         private float _rotationStartTime;
         private Vector3 _startingFollowOffset;
         private float _maxRotationAmount;
-        //private List<ISelectable> _selectedUnit = new(12);
-        private ISelectable _selectedUnit;
+        private HashSet<AbstractUnit> _aliveUnits = new(100);
+        private HashSet<AbstractUnit> _addedUnits = new(24);
+        private List<ISelectable> _selectedUnits = new(12);
+        
 
         private void Awake()
         {
@@ -43,21 +47,29 @@ namespace RTS.Player
             
             Bus<UnitSelectedEvent>.OnEvent += HandleUnitSelected;
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
+            Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawn;
         }
-        
+
         private void OnDestroy()
         {
             Bus<UnitSelectedEvent>.OnEvent -= HandleUnitSelected;
+            Bus<UnitDeselectedEvent>.OnEvent -= HandleUnitDeselected;
+            Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawn;
+        }
+        
+        private void HandleUnitSpawn(UnitSpawnEvent args)
+        {
+            _aliveUnits.Add(args.Unit);
         }
         
         private void HandleUnitSelected(UnitSelectedEvent args)
         {
-            _selectedUnit = args.Unit;
+            _selectedUnits.Add(args.Unit);
         }
         
         private void HandleUnitDeselected(UnitDeselectedEvent args)
         {
-            _selectedUnit = null;
+            _selectedUnits.Remove(args.Unit);
         }
 
         private void Update()
@@ -77,28 +89,50 @@ namespace RTS.Player
                 return;
             }
             if (leftClickAction.action.WasPressedThisFrame())
-            {
-                // Enable UI
-                selectionBox.gameObject.SetActive(true);
-                // Store start position
-                _startingMousePosition = Mouse.current.position.ReadValue();
-                Debug.Log("Drag select started" + _startingMousePosition);
+            {       
+                selectionBox.sizeDelta = Vector2.zero;                              // Reset the selection box
+                selectionBox.gameObject.SetActive(true);                            // Enable UI
+                _startingMousePosition = Mouse.current.position.ReadValue();        // Store start position
+                //Debug.Log("Drag select started" + _startingMousePosition);
+                _addedUnits.Clear();
             }
             else if (leftClickAction.action.IsPressed() && !leftClickAction.action.WasReleasedThisFrame())
             {
-                ResizeSelectionBox();
+                Bounds selectionBoxBounds = ResizeSelectionBox();
+
+                foreach (AbstractUnit unit in _aliveUnits)
+                {
+                    Vector2 unitPosition = camera.WorldToScreenPoint(unit.transform.position);
+                    if (selectionBoxBounds.Contains(unitPosition))
+                    {
+                        _addedUnits.Add(unit);
+                    }
+                }
             }
             else if (leftClickAction.action.WasReleasedThisFrame())
             {
                 // select unit
-                // deselect non-include unit
-                
+                // deselect non-included units
+                DeselectedAllUnits();
+                foreach (AbstractUnit unit in _addedUnits)  
+                {
+                    unit.Select();
+                }
                 // disable the ui
                 selectionBox.gameObject.SetActive(false);
             }
         }
 
-        private void ResizeSelectionBox()
+        private void DeselectedAllUnits()
+        {
+            ISelectable[] selectedUnits = _selectedUnits.ToArray();
+            foreach (ISelectable unit in selectedUnits)
+            {
+                unit.Deselect();
+            }
+        }
+
+        private Bounds ResizeSelectionBox()
         {
             // Resize the box
             Vector2 mousePosition = Mouse.current.position.ReadValue();
@@ -109,10 +143,13 @@ namespace RTS.Player
                 
             selectionBox.anchoredPosition = _startingMousePosition + new Vector2(width / 2, height / 2);
             selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
+            
+            return new Bounds(selectionBox.anchoredPosition, selectionBox.sizeDelta);
         }
+
         private void HandleRightClick()
         {
-            if (camera == null || _selectedUnit is not IMoveable moveable)
+            if (_selectedUnits.Count == 0)
             {
                 return;
             }
@@ -122,37 +159,41 @@ namespace RTS.Player
                 Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
                 { 
-                    moveable.MoveTo(hit.point);
+                    foreach (ISelectable selectedUnit in _selectedUnits)
+                    {
+                        if (selectedUnit is IMoveable moveable)
+                        {
+                            moveable.MoveTo(hit.point);
+                        }
+                    }
                 }
             }
         }
         
         private void HandleLeftClick()
         {
-            if (camera == null)
-            {
-                return;
-            }
+            //if (camera == null)
+            //{
+            //    return;
+            //}
             
-            
-
-            if (Mouse.current.leftButton.wasReleasedThisFrame)
-            {
-                if (_selectedUnit != null)
-                {
-                    _selectedUnit.Deselect();
-                    _selectedUnit = null;
-                }
-                Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            //if (Mouse.current.leftButton.wasReleasedThisFrame)
+            //{
+            //    if (_selectedUnits != null)
+            //    {
+            //        _selectedUnits.Deselect();
+            //        _selectedUnits = null;
+            //    }
+            //    Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 
-                if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitLayers)
-                    && hit.collider.TryGetComponent(out ISelectable selectable))
-                {
-                    // select the worker
-                    selectable.Select();
-                    _selectedUnit = selectable;
-                }
-            }
+            //    if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitLayers)
+            //        && hit.collider.TryGetComponent(out ISelectable selectable))
+            //    {
+            //        // select the worker
+            //        selectable.Select();
+            //        _selectedUnits = selectable;
+            //    }
+            //}
         }
 
         private void HandleRotation()

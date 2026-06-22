@@ -1,4 +1,5 @@
-﻿using RTS.EventBus;
+﻿using System;
+using RTS.EventBus;
 using RTS.Events;
 using UnityEngine;
 using UnityEngine.AI;
@@ -17,6 +18,12 @@ namespace RTS.Units
         {
             _agent = GetComponent<NavMeshAgent>();
         }
+
+        private void Start()
+        {
+            Bus<UnitSpawnEvent>.Raise(new UnitSpawnEvent(this));
+        }
+
         public void Select()
         {
             if (decalProjector != null)
