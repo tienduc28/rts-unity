@@ -13,6 +13,7 @@ namespace RTS.Units
         [SerializeField] private Transform target;
         [SerializeField] private DecalProjector decalProjector;
         private NavMeshAgent _agent;
+        public float AgentRadius => _agent.radius;
 
         private void Awake()
         {

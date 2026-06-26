@@ -78,7 +78,6 @@ namespace RTS.Player
             HandlePanning();
             HandleZooming();
             HandleRotation();
-            //HandleLeftClick();
             HandleRightClick();
             HandleDragSelect();
         }
@@ -179,13 +178,45 @@ namespace RTS.Player
                 Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
                 { 
-                    foreach (ISelectable selectedUnit in _selectedUnits)
+                    List<AbstractUnit> abtractUnits = new (_selectedUnits.Count);
+                    foreach (ISelectable selectable in _selectedUnits)
+                    {
+                        if (selectable is AbstractUnit unit)
+                        {
+                            abtractUnits.Add(unit);
+                        }
+                    }
+
+                    int unitsOnLayer = 0;
+                    int maxUnitsOnLayer = 1;
+                    float circleRadius = 0;
+                    float radialOffset = 0;
+
+                    foreach (AbstractUnit unit in abtractUnits)
+                    {
+                        Vector3 targetPosition = new Vector3(
+                            hit.point.x + circleRadius * Mathf.Cos(radialOffset * unitsOnLayer),
+                            hit.point.y,
+                            hit.point.z + circleRadius * Mathf.Sin(radialOffset * unitsOnLayer)
+                        );
+                        unit.MoveTo(targetPosition);
+                        unitsOnLayer++;
+                        
+                        if (unitsOnLayer >= maxUnitsOnLayer)
+                        {
+                            unitsOnLayer = 0;
+                            circleRadius += unit.AgentRadius * 3.5f;
+                            maxUnitsOnLayer = Mathf.FloorToInt(2 * Mathf.PI * circleRadius / (2 * unit.AgentRadius));
+                            radialOffset = 2 * Mathf.PI / maxUnitsOnLayer;
+                        }
+                    }
+                    /*foreach (ISelectable selectedUnit in _selectedUnits)
                     {
                         if (selectedUnit is IMoveable moveable)
                         {
                             moveable.MoveTo(hit.point);
                         }
-                    }
+                    }*/
                 }
             }
         }
