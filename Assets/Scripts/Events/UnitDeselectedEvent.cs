@@ -7,7 +7,7 @@ namespace RTS.Events
     {
            public ISelectable Unit { get; private set; }
            
-           public UnitDeselectedEvent(ISelectable unit)
+           public UnitDeselectedEvent(AbstractCommandable unit)
            {
                Unit = unit;
            }
