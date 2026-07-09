@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RTS.Commands;
 using RTS.EventBus;
 using RTS.Units;
 using Unity.Cinemachine;
@@ -34,7 +35,6 @@ namespace RTS.Player
         private HashSet<AbstractUnit> _aliveUnits = new(100);
         private HashSet<AbstractUnit> _addedUnits = new(24);
         private List<ISelectable> _selectedUnits = new(12);
-        
 
         private void Awake()
         {
@@ -178,45 +178,27 @@ namespace RTS.Player
                 Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
                 { 
-                    List<AbstractUnit> abtractUnits = new (_selectedUnits.Count);
+                    List<AbstractUnit> abstractUnits = new (_selectedUnits.Count);
                     foreach (ISelectable selectable in _selectedUnits)
                     {
                         if (selectable is AbstractUnit unit)
                         {
-                            abtractUnits.Add(unit);
+                            abstractUnits.Add(unit);
                         }
                     }
-
-                    int unitsOnLayer = 0;
-                    int maxUnitsOnLayer = 1;
-                    float circleRadius = 0;
-                    float radialOffset = 0;
-
-                    foreach (AbstractUnit unit in abtractUnits)
+                    
+                    for (int i = 0; i < abstractUnits.Count; i++)
                     {
-                        Vector3 targetPosition = new Vector3(
-                            hit.point.x + circleRadius * Mathf.Cos(radialOffset * unitsOnLayer),
-                            hit.point.y,
-                            hit.point.z + circleRadius * Mathf.Sin(radialOffset * unitsOnLayer)
-                        );
-                        unit.MoveTo(targetPosition);
-                        unitsOnLayer++;
-                        
-                        if (unitsOnLayer >= maxUnitsOnLayer)
+                        CommandContext context = new(abstractUnits[i], hit, i);
+                        foreach (ICommand command in abstractUnits[i].AvailableCommands)
                         {
-                            unitsOnLayer = 0;
-                            circleRadius += unit.AgentRadius * 3.5f;
-                            maxUnitsOnLayer = Mathf.FloorToInt(2 * Mathf.PI * circleRadius / (2 * unit.AgentRadius));
-                            radialOffset = 2 * Mathf.PI / maxUnitsOnLayer;
+                            if (command.CanHandle(context))
+                            {
+                                command.Handle(context);
+                                break;
+                            }
                         }
                     }
-                    /*foreach (ISelectable selectedUnit in _selectedUnits)
-                    {
-                        if (selectedUnit is IMoveable moveable)
-                        {
-                            moveable.MoveTo(hit.point);
-                        }
-                    }*/
                 }
             }
         }

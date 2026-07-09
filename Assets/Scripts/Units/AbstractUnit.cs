@@ -9,7 +9,6 @@ namespace RTS.Units
     [RequireComponent(typeof(NavMeshAgent))]
     public abstract class AbstractUnit : AbstractCommandable, IMoveable
     {
-        [SerializeField] private Transform target;
         private NavMeshAgent _agent;
         public float AgentRadius => _agent.radius;
 
@@ -18,8 +17,9 @@ namespace RTS.Units
             _agent = GetComponent<NavMeshAgent>();
         }
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             Bus<UnitSpawnEvent>.Raise(new UnitSpawnEvent(this));
         }
 

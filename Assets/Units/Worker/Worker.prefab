@@ -93,8 +93,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3025d5c0cf2841b88a9430d0138fb597, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RTS.Units.Worker
-  target: {fileID: 0}
+  <MaxHealth>k__BackingField: 0
+  <CurrentHealth>k__BackingField: 0
+  <AvailableCommands>k__BackingField:
+  - {fileID: 11400000, guid: bcb06c5d4d7494b40a0a0df32fdd58a4, type: 2}
   decalProjector: {fileID: 133140820635317814}
+  UnitSO: {fileID: 11400000, guid: c53634b8086d70c408fc061de2d7c08c, type: 2}
 --- !u!136 &5654263744786498415
 CapsuleCollider:
   m_ObjectHideFlags: 0
