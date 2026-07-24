@@ -12,3 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060b47b3160d45089265437f3d6534e9, type: 3}
   m_Name: Move Action
   m_EditorClassIdentifier: Assembly-CSharp::RTS.Commands.MoveCommand
+  <Icon>k__BackingField: {fileID: 0}
+  <Slot>k__BackingField: 0
+  <RequiresClickToActivate>k__BackingField: 0
+  radiusMultiplier: 3.5

@@ -58,19 +58,19 @@ namespace RTS.Player
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawn;
         }
         
-        private void HandleUnitSpawn(UnitSpawnEvent args)
+        private void HandleUnitSpawn(UnitSpawnEvent e)
         {
-            _aliveUnits.Add(args.Unit);
+            _aliveUnits.Add(e.Unit);
         }
         
-        private void HandleUnitSelected(UnitSelectedEvent args)
+        private void HandleUnitSelected(UnitSelectedEvent e)
         {
-            _selectedUnits.Add(args.Unit);
+            _selectedUnits.Add(e.Unit);
         }
         
-        private void HandleUnitDeselected(UnitDeselectedEvent args)
+        private void HandleUnitDeselected(UnitDeselectedEvent e)
         {
-            _selectedUnits.Remove(args.Unit);
+            _selectedUnits.Remove(e.Unit);
         }
 
         private void Update()
