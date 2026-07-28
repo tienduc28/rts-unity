@@ -4,11 +4,12 @@ using RTS.Commands;
 using RTS.EventBus;
 using RTS.Events;
 using RTS.Units;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace RTS.UI
 {
-    public class ActionUIs : MonoBehaviour
+    public class ActionsUI : MonoBehaviour
     {
         [SerializeField] private UIActionButton[] actionButtons;
         private HashSet<AbstractCommandable> _selectedUnits = new(12);
@@ -18,9 +19,9 @@ namespace RTS.UI
             Bus<UnitSelectedEvent>.OnEvent += HandleUnitSelected;
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
 
-            foreach (UIActionButton button in actionButtons)
+            foreach (UIActionButton actionButton in actionButtons)
             {
-                button.SetIcon(null);
+                actionButton.SetIcon(null);
             }
         }
 
@@ -52,9 +53,9 @@ namespace RTS.UI
         {
             HashSet<ActionBase> availableCommands = new(9);
 
-            foreach (AbstractCommandable unit in _selectedUnits)
+            foreach (AbstractCommandable commandable in _selectedUnits)
             {
-                availableCommands.UnionWith(unit.AvailableCommands);
+                availableCommands.AddRange(commandable.AvailableCommands);
             }
 
             for (int i = 0; i < actionButtons.Length; i++)
