@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using RTS.Commands;
 using RTS.EventBus;
 using RTS.Units;
@@ -6,6 +7,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using RTS.Events;
+using UnityEngine.EventSystems;
 
 namespace RTS.Player
 {
@@ -27,28 +29,31 @@ namespace RTS.Player
 
         private Vector2 _startingMousePosition;
         
-        private CinemachineFollow _cinemachineFollow;
-        private float _zoomStartTime;
-        private float _rotationStartTime;
-        private Vector3 _startingFollowOffset;
-        private float _maxRotationAmount;
-        private HashSet<AbstractUnit> _aliveUnits = new(100);
-        private HashSet<AbstractUnit> _addedUnits = new(24);
-        private List<ISelectable> _selectedUnits = new(12);
+        private ActionBase activeAction;
+        private bool wasMouseDownOnUI;
+        private CinemachineFollow cinemachineFollow;
+        private float zoomStartTime;
+        private float rotationStartTime;
+        private Vector3 startingFollowOffset;
+        private float maxRotationAmount;
+        private HashSet<AbstractUnit> aliveUnits = new(100);
+        private HashSet<AbstractUnit> addedUnits = new(24);
+        private List<ISelectable> selectedUnits = new(12);
 
         private void Awake()
         {
-            if (!cinemachineCamera.TryGetComponent(out _cinemachineFollow))
+            if (!cinemachineCamera.TryGetComponent(out cinemachineFollow))
             {
                 Debug.LogError("Cinemachine Camera did not have CinemachineFollow. Zoom functionality will not work!");
             }
 
-            _startingFollowOffset = _cinemachineFollow.FollowOffset;
-            _maxRotationAmount = Mathf.Abs(_cinemachineFollow.FollowOffset.z);
+            startingFollowOffset = cinemachineFollow.FollowOffset;
+            maxRotationAmount = Mathf.Abs(cinemachineFollow.FollowOffset.z);
             
             Bus<UnitSelectedEvent>.OnEvent += HandleUnitSelected;
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
             Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawn;
+            Bus<ActionSelectedEvent>.OnEvent += HandleActionSelected;
         }
 
         private void OnDestroy()
@@ -56,21 +61,27 @@ namespace RTS.Player
             Bus<UnitSelectedEvent>.OnEvent -= HandleUnitSelected;
             Bus<UnitDeselectedEvent>.OnEvent -= HandleUnitDeselected;
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawn;
+            Bus<ActionSelectedEvent>.OnEvent -= HandleActionSelected;
         }
         
         private void HandleUnitSpawn(UnitSpawnEvent e)
         {
-            _aliveUnits.Add(e.Unit);
+            aliveUnits.Add(e.Unit);
         }
         
         private void HandleUnitSelected(UnitSelectedEvent e)
         {
-            _selectedUnits.Add(e.Unit);
+            selectedUnits.Add(e.Unit);
         }
         
         private void HandleUnitDeselected(UnitDeselectedEvent e)
         {
-            _selectedUnits.Remove(e.Unit);
+            selectedUnits.Remove(e.Unit);
+        }
+        
+        private void HandleActionSelected(ActionSelectedEvent e)
+        {
+            activeAction = e.Action;
         }
 
         private void Update()
@@ -81,7 +92,7 @@ namespace RTS.Player
             HandleRightClick();
             HandleDragSelect();
         }
-
+        
         private void HandleDragSelect()
         {
             if (selectionBox == null)
@@ -101,26 +112,29 @@ namespace RTS.Player
                 HandleMouseUp();
             }
         }
-
+        
         private void HandleMouseDown()
         {
             selectionBox.sizeDelta = Vector2.zero;                              // Reset the selection box
             selectionBox.gameObject.SetActive(true);                            // Enable UI
             _startingMousePosition = Mouse.current.position.ReadValue();        // Store start position
             //Debug.Log("Drag select started" + _startingMousePosition);
-            _addedUnits.Clear();
+            addedUnits.Clear();
+            wasMouseDownOnUI = EventSystem.current.IsPointerOverGameObject();
         }
 
         private void HandleMouseDrag()
         {
+            if (activeAction != null || wasMouseDownOnUI) return;
+            
             Bounds selectionBoxBounds = ResizeSelectionBox();
 
-            foreach (AbstractUnit unit in _aliveUnits)
+            foreach (AbstractUnit unit in aliveUnits)
             {
                 Vector2 unitPosition = camera.WorldToScreenPoint(unit.transform.position);
                 if (selectionBoxBounds.Contains(unitPosition))
                 {
-                    _addedUnits.Add(unit);
+                    addedUnits.Add(unit);
                 }
             }
         }
@@ -129,12 +143,12 @@ namespace RTS.Player
         {
             // select unit
             // deselect non-included units
-            if (!shiftAction.action.IsPressed())
+            if (activeAction == null && !shiftAction.action.IsPressed())
             {
                 DeselectedAllUnits();
             }
             HandleLeftClick();
-            foreach (AbstractUnit unit in _addedUnits)  
+            foreach (AbstractUnit unit in addedUnits)  
             {
                 unit.Select();
             }
@@ -144,7 +158,7 @@ namespace RTS.Player
 
         private void DeselectedAllUnits()
         {
-            ISelectable[] selectedUnits = _selectedUnits.ToArray();
+            ISelectable[] selectedUnits = this.selectedUnits.ToArray();
             foreach (ISelectable unit in selectedUnits)
             {
                 unit.Deselect();
@@ -168,7 +182,7 @@ namespace RTS.Player
 
         private void HandleRightClick()
         {
-            if (_selectedUnits.Count == 0)
+            if (selectedUnits.Count == 0)
             {
                 return;
             }
@@ -178,8 +192,8 @@ namespace RTS.Player
                 Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
                 { 
-                    List<AbstractUnit> abstractUnits = new (_selectedUnits.Count);
-                    foreach (ISelectable selectable in _selectedUnits)
+                    List<AbstractUnit> abstractUnits = new (selectedUnits.Count);
+                    foreach (ISelectable selectable in selectedUnits)
                     {
                         if (selectable is AbstractUnit unit)
                         {
@@ -205,18 +219,44 @@ namespace RTS.Player
         
         private void HandleLeftClick()
         {
-            if (camera == null)
+            if (activeAction != null && activeAction.RequiresClickToActivate && !EventSystem.current.IsPointerOverGameObject())
             {
-                return;
+                Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+                if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
+                {   
+                    
+                    List<AbstractUnit> abstractUnits = selectedUnits
+                        .Where((unit) => unit is AbstractUnit)
+                        .Cast<AbstractUnit>()
+                        .ToList();
+                        
+                    for (int i = 0; i < abstractUnits.Count; i++)
+                    {
+                        CommandContext context = new(abstractUnits[i], hit, i);
+                        if (activeAction.CanHandle(context))
+                        {
+                            activeAction.Handle(context);
+                        }
+                    }
+
+                    activeAction = null;
+                }
             }
-            
-            Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            
-            if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitLayers)
-                && hit.collider.TryGetComponent(out ISelectable selectable))
+            else
             {
-                // select the worker
-                selectable.Select();
+                if (camera == null)
+                {
+                    return;
+                }
+            
+                Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            
+                if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitLayers)
+                    && hit.collider.TryGetComponent(out ISelectable selectable))
+                {
+                    // select the worker
+                    selectable.Select();
+                }
             }
         }
 
@@ -224,40 +264,40 @@ namespace RTS.Player
         {
             if (ShouldSetRotationStartTime())
             {
-                _rotationStartTime = Time.time;
+                rotationStartTime = Time.time;
             }
 
-            float rotationTime = Mathf.Clamp01((Time.time - _rotationStartTime) * cameraConfig.RotationSpeed);
+            float rotationTime = Mathf.Clamp01((Time.time - rotationStartTime) * cameraConfig.RotationSpeed);
 
             Vector3 targetFollowOffset;
 
             if (Keyboard.current.pageDownKey.isPressed)
             {
                 targetFollowOffset = new Vector3(
-                    _maxRotationAmount,
-                    _cinemachineFollow.FollowOffset.y,
+                    maxRotationAmount,
+                    cinemachineFollow.FollowOffset.y,
                     0
                 );
             }
             else if (Keyboard.current.pageUpKey.isPressed)
             {
                 targetFollowOffset = new Vector3(
-                    -_maxRotationAmount,
-                    _cinemachineFollow.FollowOffset.y,
+                    -maxRotationAmount,
+                    cinemachineFollow.FollowOffset.y,
                     0
                 );
             }
             else
             {
                 targetFollowOffset = new Vector3(
-                    _startingFollowOffset.x,
-                    _cinemachineFollow.FollowOffset.y,
-                    _startingFollowOffset.z
+                    startingFollowOffset.x,
+                    cinemachineFollow.FollowOffset.y,
+                    startingFollowOffset.z
                 );
             }
 
-            _cinemachineFollow.FollowOffset = Vector3.Slerp(
-                _cinemachineFollow.FollowOffset,
+            cinemachineFollow.FollowOffset = Vector3.Slerp(
+                cinemachineFollow.FollowOffset,
                 targetFollowOffset,
                 rotationTime
             );
@@ -275,31 +315,31 @@ namespace RTS.Player
         {
             if (ShouldSetZoomStartTime())
             {
-                _zoomStartTime = Time.time;
+                zoomStartTime = Time.time;
             }
 
-            float zoomTime = Mathf.Clamp01((Time.time - _zoomStartTime) * cameraConfig.ZoomSpeed);
+            float zoomTime = Mathf.Clamp01((Time.time - zoomStartTime) * cameraConfig.ZoomSpeed);
             Vector3 targetFollowOffset;
 
             if (Keyboard.current.endKey.isPressed)
             {
                 targetFollowOffset = new Vector3(
-                    _cinemachineFollow.FollowOffset.x,
+                    cinemachineFollow.FollowOffset.x,
                     cameraConfig.MinZoomDistance,
-                    _cinemachineFollow.FollowOffset.z
+                    cinemachineFollow.FollowOffset.z
                 );
             }
             else
             {
                 targetFollowOffset = new Vector3(
-                    _cinemachineFollow.FollowOffset.x,
-                    _startingFollowOffset.y,
-                    _cinemachineFollow.FollowOffset.z
+                    cinemachineFollow.FollowOffset.x,
+                    startingFollowOffset.y,
+                    cinemachineFollow.FollowOffset.z
                 );
             }
 
-            _cinemachineFollow.FollowOffset = Vector3.Slerp(
-                _cinemachineFollow.FollowOffset,
+            cinemachineFollow.FollowOffset = Vector3.Slerp(
+                cinemachineFollow.FollowOffset,
                 targetFollowOffset,
                 zoomTime
             );
