@@ -71,6 +71,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RTS.Units.BaseBuilding
   <MaxHealth>k__BackingField: 0
   <CurrentHealth>k__BackingField: 0
+  <AvailableCommands>k__BackingField:
+  - {fileID: 11400000, guid: 30134d10cc3a1bc4fbfed6eae716500f, type: 2}
   decalProjector: {fileID: 30522228271235785}
   UnitSO: {fileID: 11400000, guid: 3042bd027dc1da94a82939c8f625d860, type: 2}
 --- !u!208 &9141344245049246732

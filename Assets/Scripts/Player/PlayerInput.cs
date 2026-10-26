@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using RTS.Commands;
 using RTS.EventBus;
+using RTS.Events;
 using RTS.Units;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using RTS.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace RTS.Player
 {
@@ -25,10 +25,10 @@ namespace RTS.Player
         [SerializeField] private InputActionReference leftClickAction;
         [SerializeField] private InputActionReference rightClickAction;
         [SerializeField] private InputActionReference shiftAction;
-        
+
 
         private Vector2 _startingMousePosition;
-        
+
         private ActionBase activeAction;
         private bool wasMouseDownOnUI;
         private CinemachineFollow cinemachineFollow;
@@ -49,7 +49,7 @@ namespace RTS.Player
 
             startingFollowOffset = cinemachineFollow.FollowOffset;
             maxRotationAmount = Mathf.Abs(cinemachineFollow.FollowOffset.z);
-            
+
             Bus<UnitSelectedEvent>.OnEvent += HandleUnitSelected;
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
             Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawn;
@@ -63,25 +63,31 @@ namespace RTS.Player
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawn;
             Bus<ActionSelectedEvent>.OnEvent -= HandleActionSelected;
         }
-        
+
         private void HandleUnitSpawn(UnitSpawnEvent e)
         {
             aliveUnits.Add(e.Unit);
         }
-        
+
         private void HandleUnitSelected(UnitSelectedEvent e)
         {
             selectedUnits.Add(e.Unit);
         }
-        
+
         private void HandleUnitDeselected(UnitDeselectedEvent e)
         {
             selectedUnits.Remove(e.Unit);
         }
-        
+
         private void HandleActionSelected(ActionSelectedEvent e)
         {
             activeAction = e.Action;
+            if (!activeAction.RequiresClickToActivate)
+            {
+                // immediately execute action if no click is required
+                ActivateAction(new RaycastHit());
+                return;
+            }
         }
 
         private void Update()
@@ -92,7 +98,7 @@ namespace RTS.Player
             HandleRightClick();
             HandleDragSelect();
         }
-        
+
         private void HandleDragSelect()
         {
             if (selectionBox == null)
@@ -100,7 +106,7 @@ namespace RTS.Player
                 return;
             }
             if (leftClickAction.action.WasPressedThisFrame())
-            {       
+            {
                 HandleMouseDown();
             }
             else if (leftClickAction.action.IsPressed() && !leftClickAction.action.WasReleasedThisFrame())
@@ -112,7 +118,7 @@ namespace RTS.Player
                 HandleMouseUp();
             }
         }
-        
+
         private void HandleMouseDown()
         {
             selectionBox.sizeDelta = Vector2.zero;                              // Reset the selection box
@@ -126,7 +132,7 @@ namespace RTS.Player
         private void HandleMouseDrag()
         {
             if (activeAction != null || wasMouseDownOnUI) return;
-            
+
             Bounds selectionBoxBounds = ResizeSelectionBox();
 
             foreach (AbstractUnit unit in aliveUnits)
@@ -148,7 +154,7 @@ namespace RTS.Player
                 DeselectedAllUnits();
             }
             HandleLeftClick();
-            foreach (AbstractUnit unit in addedUnits)  
+            foreach (AbstractUnit unit in addedUnits)
             {
                 unit.Select();
             }
@@ -171,12 +177,12 @@ namespace RTS.Player
             Vector2 mousePosition = Mouse.current.position.ReadValue();
             float width = mousePosition.x - _startingMousePosition.x;
             float height = mousePosition.y - _startingMousePosition.y;
-            
+
             //Debug.Log($"Resizing selection box to width: {width}, height: {height}");
-                
+
             selectionBox.anchoredPosition = _startingMousePosition + new Vector2(width / 2, height / 2);
             selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
-            
+
             return new Bounds(selectionBox.anchoredPosition, selectionBox.sizeDelta);
         }
 
@@ -186,13 +192,13 @@ namespace RTS.Player
             {
                 return;
             }
-            
+
             if (Mouse.current.rightButton.wasReleasedThisFrame)
             {
                 Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
-                { 
-                    List<AbstractUnit> abstractUnits = new (selectedUnits.Count);
+                {
+                    List<AbstractUnit> abstractUnits = new(selectedUnits.Count);
                     foreach (ISelectable selectable in selectedUnits)
                     {
                         if (selectable is AbstractUnit unit)
@@ -200,7 +206,7 @@ namespace RTS.Player
                             abstractUnits.Add(unit);
                         }
                     }
-                    
+
                     for (int i = 0; i < abstractUnits.Count; i++)
                     {
                         CommandContext context = new(abstractUnits[i], hit, i);
@@ -216,30 +222,16 @@ namespace RTS.Player
                 }
             }
         }
-        
+
         private void HandleLeftClick()
         {
+            // 
             if (activeAction != null && activeAction.RequiresClickToActivate && !EventSystem.current.IsPointerOverGameObject())
             {
                 Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
-                {   
-                    
-                    List<AbstractUnit> abstractUnits = selectedUnits
-                        .Where((unit) => unit is AbstractUnit)
-                        .Cast<AbstractUnit>()
-                        .ToList();
-                        
-                    for (int i = 0; i < abstractUnits.Count; i++)
-                    {
-                        CommandContext context = new(abstractUnits[i], hit, i);
-                        if (activeAction.CanHandle(context))
-                        {
-                            activeAction.Handle(context);
-                        }
-                    }
-
-                    activeAction = null;
+                {
+                    ActivateAction(hit);
                 }
             }
             else
@@ -248,9 +240,9 @@ namespace RTS.Player
                 {
                     return;
                 }
-            
+
                 Ray cameraRay = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            
+
                 if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitLayers)
                     && hit.collider.TryGetComponent(out ISelectable selectable))
                 {
@@ -258,6 +250,25 @@ namespace RTS.Player
                     selectable.Select();
                 }
             }
+        }
+
+        private void ActivateAction(RaycastHit hit)
+        {
+            List<AbstractCommandable> abstractCommandables = selectedUnits
+                                    .Where((unit) => unit is AbstractCommandable)
+                                    .Cast<AbstractCommandable>()
+                                    .ToList();
+
+            for (int i = 0; i < abstractCommandables.Count; i++)
+            {
+                CommandContext context = new(abstractCommandables[i], hit, i);
+                if (activeAction.CanHandle(context))
+                {
+                    activeAction.Handle(context);
+                }
+            }
+
+            activeAction = null;
         }
 
         private void HandleRotation()
