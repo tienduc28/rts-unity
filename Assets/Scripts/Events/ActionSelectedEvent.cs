@@ -1,4 +1,4 @@
-﻿using RTS.Commands;
+using RTS.Commands;
 using RTS.EventBus;
 
 namespace RTS.Events

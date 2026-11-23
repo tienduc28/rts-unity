@@ -1,0 +1,303 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Sơ đồ Nghiệp vụ Điều khiển & Vận hành Đơn vị RTS",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/tienduc28/test.git",
+      "revision": "5ac7fbe9ab8e0e3342d0cb54fd609368472f899c",
+      "provider": "github",
+      "link_mode": "web"
+    },
+    "output": ".archify/workflow-rts-business-flow-20261028-150000/rts-business-flow.html"
+  },
+  "lanes": [
+    { "id": "lane_player", "label": "1. Tương tác Người chơi & Camera (Player Input)" },
+    { "id": "lane_selection", "label": "2. Quản lý Chọn lọc & EventBus (Selection System)" },
+    { "id": "lane_command", "label": "3. Định tuyến & Xử lý Lệnh (Command Pipeline)" },
+    { "id": "lane_unit", "label": "4. Đơn vị & Di chuyển NavMesh (Unit Movement)" },
+    { "id": "lane_building", "label": "5. Công trình & Huấn luyện (Building Production)" }
+  ],
+  "phases": [
+    { "id": "phase_input", "label": "Tiếp nhận Đầu vào", "fromCol": 0, "toCol": 0, "variant": "default" },
+    { "id": "phase_select", "label": "Chọn lọc & Lọc UI", "fromCol": 1, "toCol": 1, "variant": "emphasis" },
+    { "id": "phase_sync", "label": "Đồng bộ UI & Bus", "fromCol": 2, "toCol": 2, "variant": "default" },
+    { "id": "phase_routing", "label": "Phân giải Nghiệp vụ", "fromCol": 3, "toCol": 3, "variant": "emphasis" },
+    { "id": "phase_calc", "label": "Tính toán & Xếp hàng", "fromCol": 4, "toCol": 4, "variant": "default" },
+    { "id": "phase_exec", "label": "Thực thi Mô phỏng", "fromCol": 5, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    { "id": "group_player", "label": "Điều khiển & Khung nhìn", "lane": "lane_player", "fromCol": 0, "toCol": 1, "variant": "default" },
+    { "id": "group_selection", "label": "Đồng bộ Trạng thái Chọn", "lane": "lane_selection", "fromCol": 1, "toCol": 2, "variant": "emphasis" },
+    { "id": "group_commands", "label": "Thanh Lệnh & Định tuyến", "lane": "lane_command", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "group_unit_flow", "label": "Đội hình & Di chuyển Worker", "lane": "lane_unit", "fromCol": 4, "toCol": 5, "variant": "emphasis" },
+    { "id": "group_building_flow", "label": "Sản xuất & Sinh Đơn vị", "lane": "lane_building", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": [
+    "player_input",
+    "select_filter",
+    "event_bus",
+    "actions_ui",
+    "cmd_router",
+    "move_formation",
+    "navmesh_move"
+  ],
+  "nodes": [
+    {
+      "id": "player_input",
+      "lane": "lane_player",
+      "col": 0,
+      "type": "frontend",
+      "label": "Nhận Thao tác",
+      "sublabel": "Lắng nghe chuột & phím",
+      "tag": "PlayerInput.cs",
+      "icon": "start",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Player/PlayerInput.cs", "line": 93, "end_line": 100, "label": "Vòng lặp Input Update" }
+      ]
+    },
+    {
+      "id": "camera_nav",
+      "lane": "lane_player",
+      "col": 1,
+      "type": "backend",
+      "label": "Điều hướng Camera",
+      "sublabel": "Pan, Zoom & Xoay góc",
+      "tag": "CinemachineFollow",
+      "icon": "neutral",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Player/PlayerInput.cs", "line": 274, "end_line": 426, "label": "Điều khiển Camera" }
+      ]
+    },
+    {
+      "id": "select_filter",
+      "lane": "lane_selection",
+      "col": 1,
+      "type": "security",
+      "label": "Bộ lọc Vùng chọn",
+      "sublabel": "Raycast & kéo DragBox",
+      "tag": "HandleDragSelect",
+      "icon": "decision",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Player/PlayerInput.cs", "line": 102, "end_line": 163, "label": "Xử lý vùng chọn chuột" }
+      ]
+    },
+    {
+      "id": "event_bus",
+      "lane": "lane_selection",
+      "col": 2,
+      "type": "messagebus",
+      "label": "Điều phối EventBus",
+      "sublabel": "Phát sự kiện chọn",
+      "tag": "Bus<T> Decoupled",
+      "icon": "messagebus",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Units/AbstractCommandable.cs", "line": 24, "end_line": 42, "label": "Select/Deselect qua EventBus" }
+      ]
+    },
+    {
+      "id": "actions_ui",
+      "lane": "lane_command",
+      "col": 2,
+      "type": "frontend",
+      "label": "Cập nhật ActionsUI",
+      "sublabel": "Nạp 9 slot lệnh đơn vị",
+      "tag": "ActionsUI (0-8 slots)",
+      "icon": "frontend",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/UI/ActionsUI.cs", "line": 56, "end_line": 78, "label": "Gán lệnh vào nút UI" }
+      ]
+    },
+    {
+      "id": "cmd_router",
+      "lane": "lane_command",
+      "col": 3,
+      "type": "backend",
+      "label": "Định tuyến Lệnh",
+      "sublabel": "Kiểm tra CanHandle",
+      "tag": "ICommand Context",
+      "icon": "decision",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Player/PlayerInput.cs", "line": 210, "end_line": 221, "label": "Khởi tạo ngữ cảnh lệnh" }
+      ]
+    },
+    {
+      "id": "move_formation",
+      "lane": "lane_unit",
+      "col": 4,
+      "type": "backend",
+      "label": "Tính Đội hình",
+      "sublabel": "Offset giãn cách lính",
+      "tag": "MoveCommand",
+      "icon": "active",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Commands/MoveCommand.cs", "line": 23, "end_line": 46, "label": "Thuật toán giãn cách đơn vị" }
+      ]
+    },
+    {
+      "id": "build_coroutine",
+      "lane": "lane_building",
+      "col": 4,
+      "type": "database",
+      "label": "Hàng đợi Đơn vị",
+      "sublabel": "Chờ theo BuildTime",
+      "tag": "BaseBuilding",
+      "icon": "waiting",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Units/BaseBuilding.cs", "line": 13, "end_line": 19, "label": "Chờ huấn luyện Coroutine" }
+      ]
+    },
+    {
+      "id": "navmesh_move",
+      "lane": "lane_unit",
+      "col": 5,
+      "type": "backend",
+      "label": "Di chuyển NavMesh",
+      "sublabel": "Worker đến đích",
+      "tag": "NavMeshAgent",
+      "icon": "success",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Units/AbstractUnit.cs", "line": 26, "end_line": 29, "label": "Thực thi SetDestination" }
+      ]
+    },
+    {
+      "id": "spawn_unit",
+      "lane": "lane_building",
+      "col": 5,
+      "type": "cloud",
+      "label": "Sinh Đơn vị Mới",
+      "sublabel": "Instantiate & Bus phát",
+      "tag": "UnitSpawnEvent",
+      "icon": "success",
+      "width": 132,
+      "sources": [
+        { "path": "Assets/Scripts/Units/BaseBuilding.cs", "line": 18, "end_line": 19, "label": "Khởi tạo GameObject đơn vị" }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_input_camera",
+      "from": "player_input",
+      "to": "camera_nav",
+      "label": "Phím mũi tên / PageUp / End",
+      "role": "branch",
+      "variant": "default"
+    },
+    {
+      "id": "e_input_select",
+      "from": "player_input",
+      "to": "select_filter",
+      "label": "Nhấn chuột trái",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_right_click_cmd",
+      "from": "event_bus",
+      "to": "cmd_router",
+      "label": "Chuột phải sàn (Đã chọn đơn vị)",
+      "role": "branch",
+      "variant": "default"
+    },
+    {
+      "id": "e_select_event",
+      "from": "select_filter",
+      "to": "event_bus",
+      "label": "Bật Decal & Select()",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_event_ui",
+      "from": "event_bus",
+      "to": "actions_ui",
+      "label": "UnitSelectedEvent",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_ui_router",
+      "from": "actions_ui",
+      "to": "cmd_router",
+      "label": "Bấm nút Action",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_router_move",
+      "from": "cmd_router",
+      "to": "move_formation",
+      "label": "CanHandle: AbstractUnit",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_router_build",
+      "from": "cmd_router",
+      "to": "build_coroutine",
+      "label": "CanHandle: BaseBuilding",
+      "role": "branch",
+      "variant": "dashed"
+    },
+    {
+      "id": "e_move_navmesh",
+      "from": "move_formation",
+      "to": "navmesh_move",
+      "label": "MoveTo(Vector3)",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_build_spawn",
+      "from": "build_coroutine",
+      "to": "spawn_unit",
+      "label": "Hết BuildTime",
+      "role": "branch",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Quy tắc Nghiệp vụ Chọn Đơn vị (Selection Rules)",
+      "items": [
+        "Click đơn vị: Raycast kiểm tra LayerMask 'selectableUnitLayers' để tìm ISelectable.",
+        "Kéo box chọn: Duyệt aliveUnits, chuyển tọa độ sang WorldToScreenPoint so khớp với Bounds của SelectionBox.",
+        "Shift-click: Giữ lại đơn vị đang chọn; nhả Shift: Gọi DeselectedAllUnits() giải phóng trước khi chọn mới.",
+        "DecalProjector: Tự động bật/tắt chiếu decal đánh dấu dưới chân đơn vị khi Select()/Deselect()."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Thuật toán Đội hình Vòng tròn (Concentric Circles Formation)",
+      "items": [
+        "Áp dụng trong MoveCommand khi điều khiển một nhóm đơn vị cùng di chuyển tới một điểm.",
+        "Đơn vị đầu tiên (UnitIndex = 0) đứng tại tâm điểm Hit.point trên địa hình.",
+        "Các đơn vị sau phân bổ đều theo từng lớp vòng tròn có bán kính tăng dần (circleRadius += AgentRadius * 3.5).",
+        "Số lượng tối đa trên mỗi lớp: FloorToInt(2 * PI * R / (2 * AgentRadius)), tự động tính góc lệch radialOffset."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Quy trình Huấn luyện & Sinh Đơn vị (Unit Production Flow)",
+      "items": [
+        "BuildUnitCommand kiểm tra CommandContext.Commandable có phải BaseBuilding.",
+        "Gọi DoBuildUnit(UnitSO): Chạy Coroutine chờ đúng số giây theo UnitSO.BuildTime.",
+        "Kết thúc Coroutine: Instantiate prefab tại tọa độ tòa nhà và kích hoạt UnitSpawnEvent.",
+        "PlayerInput nhận UnitSpawnEvent và đưa đơn vị mới vào danh sách aliveUnits để sẵn sàng nhận lệnh."
+      ]
+    }
+  ]
+}

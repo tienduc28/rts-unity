@@ -149,7 +149,7 @@ namespace RTS.Player
         {
             // select unit
             // deselect non-included units
-            if (activeAction == null && !shiftAction.action.IsPressed())
+            if (!wasMouseDownOnUI && activeAction == null && !shiftAction.action.IsPressed())
             {
                 DeselectedAllUnits();
             }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8a2dfebc72043ea854d13ad05f46e22, type: 3}
   m_Name: Build Worker
   m_EditorClassIdentifier: Assembly-CSharp::RTS.Commands.BuildUnitCommand
-  <Icon>k__BackingField: {fileID: 0}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 6e40afd6361ffe44a87846d98dd04e7c, type: 3}
   <Slot>k__BackingField: 0
   <RequiresClickToActivate>k__BackingField: 0
-  Unit: {fileID: 0}
+  Unit: {fileID: 11400000, guid: c53634b8086d70c408fc061de2d7c08c, type: 2}

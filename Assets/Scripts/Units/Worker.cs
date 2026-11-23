@@ -1,4 +1,4 @@
-﻿using RTS.EventBus;
+using RTS.EventBus;
 using RTS.Events;
 using UnityEngine;
 using UnityEngine.AI;

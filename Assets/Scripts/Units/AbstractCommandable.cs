@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using RTS.Commands;
 using RTS.EventBus;
 using RTS.Events;

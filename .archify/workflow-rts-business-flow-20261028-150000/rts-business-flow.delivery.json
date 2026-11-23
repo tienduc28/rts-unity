@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "7bb8fecc-7d05-4e44-be74-327f0fb8ef91",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "D:\\Unity\\unity-rts\\.archify\\workflow-rts-business-flow-20261028-150000\\candidate.json",
+  "output": "D:\\Unity\\unity-rts\\.archify\\workflow-rts-business-flow-20261028-150000\\rts-business-flow.html",
+  "specification": {
+    "sha256": "f81a864db03843f5f6f690e2d2c3aa71bfa58277e049b0318a95b4c2caef9889",
+    "bytes": 10782
+  },
+  "artifact": {
+    "sha256": "2ecb36bc5ada6707bb2c6a1e67aa265f8936bb64ee6bea7c4c797f19c4de51a7",
+    "bytes": 861982
+  }
+}

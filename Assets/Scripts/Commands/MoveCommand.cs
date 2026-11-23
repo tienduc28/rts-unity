@@ -1,4 +1,4 @@
-﻿using RTS.Units;
+using RTS.Units;
 using UnityEngine;
 
 namespace RTS.Commands

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "workflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\Unity\\unity-rts\\.archify\\workflow-rts-business-flow-20261028-150000\\candidate.json",
+    "sha256": "f81a864db03843f5f6f690e2d2c3aa71bfa58277e049b0318a95b4c2caef9889",
+    "bytes": 10782
+  },
+  "artifact": {
+    "path": "D:\\Unity\\unity-rts\\.archify\\workflow-rts-business-flow-20261028-150000\\rts-business-flow.html",
+    "sha256": "2ecb36bc5ada6707bb2c6a1e67aa265f8936bb64ee6bea7c4c797f19c4de51a7",
+    "bytes": 861982
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\Unity\\unity-rts\\.archify\\workflow-rts-business-flow-20261028-150000\\rts-business-flow.finalize.json",
+    "summaryReceipt": "D:\\Unity\\unity-rts\\.archify\\workflow-rts-business-flow-20261028-150000\\rts-business-flow.finalize-summary.json",
+    "browserCheckReceipt": "D:\\Unity\\unity-rts\\.archify\\workflow-rts-business-flow-20261028-150000\\rts-business-flow.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-28T05:04:54.720Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3481,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

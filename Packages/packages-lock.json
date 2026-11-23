@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.termway.ide.antigravity": {
+      "version": "https://github.com/TermWay/unity-ide-antigravity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "4f7cee3345fa4a2db649dea171235a1d3852df79"
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 1,

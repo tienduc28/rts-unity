@@ -1,4 +1,4 @@
-﻿namespace RTS.EventBus
+namespace RTS.EventBus
 {
     public interface IEvent
     {

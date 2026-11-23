@@ -1,4 +1,4 @@
-﻿namespace RTS.Commands
+namespace RTS.Commands
 {
     public interface ICommand
     {

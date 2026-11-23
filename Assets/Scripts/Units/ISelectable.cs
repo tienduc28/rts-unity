@@ -1,4 +1,4 @@
-﻿namespace RTS.Units
+namespace RTS.Units
 {
     public interface ISelectable
     {
