@@ -5974,6 +5974,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 678600339507852544, guid: 35fac6f4b2e42d84086833e25844954a, type: 3}
   m_PrefabInstance: {fileID: 463742824}
   m_PrefabAsset: {fileID: 0}
+--- !u!224 &467466778 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8448819135003246128, guid: 599856f3bd9a1614f9c0db64f2ddcacd, type: 3}
+  m_PrefabInstance: {fileID: 684018148024924124}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &467497949
 GameObject:
   m_ObjectHideFlags: 0
@@ -11116,6 +11121,25 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7238607690618788840, guid: 3ece5d289035d0b4580cc990a54e21cd, type: 3}
   m_PrefabInstance: {fileID: 857407402}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &863510038 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7481742095462984395, guid: 599856f3bd9a1614f9c0db64f2ddcacd, type: 3}
+  m_PrefabInstance: {fileID: 684018148024924124}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &863510039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 863510038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cae5a08e169884d4a891449ddc0e6f19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RTS.UI.Components.ProgressBar
+  mask: {fileID: 467466778}
+  progress: 0
 --- !u!1 &868615160
 GameObject:
   m_ObjectHideFlags: 0
@@ -29152,10 +29176,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Progress Bar
       objectReference: {fileID: 0}
+    - target: {fileID: 8364651320022198740, guid: 599856f3bd9a1614f9c0db64f2ddcacd, type: 3}
+      propertyPath: m_Type
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7481742095462984395, guid: 599856f3bd9a1614f9c0db64f2ddcacd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 863510039}
   m_SourcePrefab: {fileID: 100100000, guid: 599856f3bd9a1614f9c0db64f2ddcacd, type: 3}
 --- !u!1001 &3327223654149646776
 PrefabInstance:
